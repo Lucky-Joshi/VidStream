@@ -55,27 +55,7 @@
         btn.style.transition = 'background 0.3s, color 0.3s';
       }
       // Sidebar toggle
-      const sidebar = document.getElementById('sidebar');
-      const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
-      const main = document.querySelector('main');
-      const header = document.querySelector('header');
-      function setSidebarVisibility(visible) {
-        if (visible) {
-          sidebar.classList.add('visible');
-          main.style.marginLeft = '90px';
-          header.style.left = '90px';
-          header.style.position = 'fixed';
-          header.style.width = 'calc(100% - 90px)';
-          header.style.zIndex = '1002';
-        } else {
-          sidebar.classList.remove('visible');
-          main.style.marginLeft = '0';
-          header.style.left = '0';
-          header.style.position = 'fixed';
-          header.style.width = '100%';
-          header.style.zIndex = '1002';
-        }
-      }
+      
       let sidebarVisible = true;
       setSidebarVisibility(sidebarVisible);
       sidebarToggleBtn.addEventListener('click', () => {

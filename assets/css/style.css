@@ -414,3 +414,61 @@ html[data-theme='light'] input[type="text"] {
   color: #232323;
   border: 2px solid #e50914;
 }
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 250px;
+  background-color: #1a1a1a;
+  overflow-x: hidden;
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
+  z-index: 90; /* less than header */
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+body.sidebar-open main {
+  margin-left: 250px;
+}
+.sidebar a {
+  padding: 1rem;
+  text-decoration: none;
+  color: #fff;
+  display: block;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.sidebar-open main {
+  margin-left: 250px;
+}
+
+body.sidebar-open header {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #1a1a1a;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1002;
+  width: 100%;
+  box-sizing: border-box;
+  transition: margin-left 0.3s, width 0.3s;
+}
+
+body.sidebar-open header {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+}
