@@ -1,27 +1,79 @@
+<!--
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VidStream - Watch Video</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Watch - VidStream</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="video-body">
-  <div id="app"></div>
-  <main class="video-main">
-    <div class="video-player-container">
-      <video id="videoPlayer" controls>
-        <source src="videos/sample.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    </div>
-    <button onclick="toggleWatchlist()" class="btn">Add/Remove from Watchlist</button>
-    <h2 class="related-heading">Related Videos</h2>
-    <div class="video-grid" id="relatedVideos"></div>
+<body>
+  <header>
+    <h1>▶ Now Playing</h1>
+    <a href="index.html">← Back to Home</a>
+  </header>
+
+  <main>
+    <video id="videoPlayer" width="100%" controls></video>
+    <br><br>
+    <button onclick="addToWatchlist()">📥 Add to Watchlist</button>
   </main>
-  <script src="js/common.js"></script>
-  <script src="js/video.js"></script>
+
+  <script src="assets/js/videoPlayer.js"></script>
+</body>
+</html>
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VidStream - Watch</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header>
+    <h1>VidStream</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="watchlist.html">Watchlist</a>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleTheme()" id="themeToggle">
+        <span class="slider round"></span>
+      </label>
+    </nav>
+  </header>
+
+  <main>
+    <h2 id="videoTitle"></h2>
+    <video id="videoPlayer" width="100%" height="auto" controls>
+      Your browser does not support the video tag.
+    </video>
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      document.getElementById("themeToggle").checked = newTheme === "light";
+    }
+
+    window.onload = () => {
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.getElementById("themeToggle").checked = savedTheme === "light";
+
+      const videoData = JSON.parse(localStorage.getItem("currentVideo"));
+      if (videoData) {
+        document.getElementById("videoTitle").textContent = videoData.title;
+        document.getElementById("videoPlayer").src = videoData.src;
+      }
+    };
+  </script>
 </body>
 </html>

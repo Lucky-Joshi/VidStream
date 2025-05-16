@@ -1,21 +1,83 @@
+<!--
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VidStream - Home</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://kit.fontawesome.com/a2e0ad5c57.js" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="home-body">
-  <div id="app"></div>
-  <main class="main-content">
-    <h1 class="heading">Trending Videos</h1>
-    <div class="video-grid" id="videoList"></div>
+<body>
+  <header>
+    <h1>🎬 VidStream</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="watchlist.html">Watchlist</a>
+      <button onclick="toggleTheme()" title="Toggle Theme">🌓</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="featured">
+      <h2>Featured</h2>
+      <div class="video-card">
+        <img src="assets/images/thumbnails/sample-thumb.jpg" alt="Sample" />
+        <h3>Sample Video</h3>
+        <button onclick="playVideo('sample-video.mp4')">▶ Play</button>
+      </div>
+    </section>
+
+    <section class="trending">
+      <h2>🔥 Trending Now</h2>
+      <div class="video-list">
+        <div class="video-card">
+          <img src="assets/images/thumbnails/sample-thumb.jpg" alt="Sample" />
+          <h3>Another Clip</h3>
+          <button onclick="playVideo('sample-video.mp4')">▶ Play</button>
+        </div>
+      </div>
+    </section>
   </main>
-  <script src="js/common.js"></script>
-  <script src="js/home.js"></script>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VidStream - Home</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header>
+    <h1>VidStream</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="search.html">Search</a>
+      <a href="watchlist.html">Watchlist</a>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleTheme()" id="themeToggle">
+        <span class="slider round"></span>
+      </label>
+    </nav>
+  </header>
+
+  <main>
+    <input type="text" placeholder="Search for videos..." onkeyup="searchVideos(this.value)">
+    <div class="video-list" id="videoList">
+      <!-- Video cards inserted dynamically -->
+    </div>
+  </main>
+
+  <script src="assets/js/main.js"></script>
 </body>
 </html>
