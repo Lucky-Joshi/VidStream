@@ -1,52 +1,3 @@
-<!--
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VidStream - Home</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
-  <script src="https://kit.fontawesome.com/a2e0ad5c57.js" crossorigin="anonymous"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
-  <header>
-    <h1>🎬 VidStream</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="search.html">Search</a>
-      <a href="watchlist.html">Watchlist</a>
-      <button onclick="toggleTheme()" title="Toggle Theme">🌓</button>
-    </nav>
-  </header>
-
-  <main>
-    <section class="featured">
-      <h2>Featured</h2>
-      <div class="video-card">
-        <img src="assets/images/thumbnails/sample-thumb.jpg" alt="Sample" />
-        <h3>Sample Video</h3>
-        <button onclick="playVideo('sample-video.mp4')">▶ Play</button>
-      </div>
-    </section>
-
-    <section class="trending">
-      <h2>🔥 Trending Now</h2>
-      <div class="video-list">
-        <div class="video-card">
-          <img src="assets/images/thumbnails/sample-thumb.jpg" alt="Sample" />
-          <h3>Another Clip</h3>
-          <button onclick="playVideo('sample-video.mp4')">▶ Play</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script src="assets/js/main.js"></script>
-</body>
-</html>
--->
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -60,16 +11,18 @@
 <body>
   <header>
     <h1>VidStream</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="search.html">Search</a>
-      <a href="watchlist.html">Watchlist</a>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleTheme()" id="themeToggle">
-        <span class="slider round"></span>
-      </label>
-    </nav>
   </header>
+  <button id="sidebarToggleBtn" title="Toggle menu" aria-label="Toggle sidebar">
+    <span id="sidebarToggleIcon"><i class="fas fa-bars"></i></span>
+  </button>
+  <aside class="sidebar" id="sidebar">
+    <a href="#" class="sidebar-link">Home</a>
+    <a href="search.html" class="sidebar-link">Search</a>
+    <a href="watchlist.html" class="sidebar-link">Watchlist</a>
+  </aside>
+  <button id="themeToggleBtn" title="Toggle theme" onclick="toggleTheme()">
+    <span id="themeIcon" class="theme-icon"><i class="fas fa-sun"></i></span>
+  </button>
 
   <main>
     <input type="text" placeholder="Search for videos..." onkeyup="searchVideos(this.value)">
@@ -79,5 +32,95 @@
   </main>
 
   <script src="assets/js/main.js"></script>
+  <script>
+    // Move theme toggle button to bottom right and handle sidebar toggle
+    window.addEventListener('DOMContentLoaded', () => {
+      // Theme toggle button
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) {
+        btn.style.position = 'fixed';
+        btn.style.right = '2rem';
+        btn.style.bottom = '2rem';
+        btn.style.zIndex = '2000';
+        btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        btn.style.borderRadius = '50%';
+        btn.style.width = '48px';
+        btn.style.height = '48px';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = '#fff';
+        btn.style.fontSize = '1.5rem';
+        btn.style.transition = 'background 0.3s, color 0.3s';
+      }
+      // Sidebar toggle
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+      const main = document.querySelector('main');
+      const header = document.querySelector('header');
+      function setSidebarVisibility(visible) {
+        if (visible) {
+          sidebar.classList.add('visible');
+          main.style.marginLeft = '90px';
+          header.style.left = '90px';
+          header.style.position = 'fixed';
+          header.style.width = 'calc(100% - 90px)';
+          header.style.zIndex = '1002';
+        } else {
+          sidebar.classList.remove('visible');
+          main.style.marginLeft = '0';
+          header.style.left = '0';
+          header.style.position = 'fixed';
+          header.style.width = '100%';
+          header.style.zIndex = '1002';
+        }
+      }
+      let sidebarVisible = true;
+      setSidebarVisibility(sidebarVisible);
+      sidebarToggleBtn.addEventListener('click', () => {
+        sidebarVisible = !sidebarVisible;
+        setSidebarVisibility(sidebarVisible);
+        // Always show the bars icon (no cross icon)
+        document.getElementById('sidebarToggleIcon').innerHTML = '<i class="fas fa-bars"></i>';
+      });
+    });
+
+    function setThemeIcon(theme) {
+      const icon = document.getElementById('themeIcon');
+      if (!icon) return;
+      // Reverse: show moon for light, sun for dark
+      icon.innerHTML = theme === 'light'
+        ? '<i class="fas fa-moon"></i>'
+        : '<i class="fas fa-sun"></i>';
+      // Change button color for light mode
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) {
+        if (theme === 'light') {
+          btn.style.background = '#fff';
+          btn.style.color = 'var(--primary-color)';
+          btn.style.border = '1px solid var(--primary-color)';
+        } else {
+          btn.style.background = 'var(--primary-color)';
+          btn.style.color = '#fff';
+          btn.style.border = 'none';
+        }
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      setThemeIcon(newTheme);
+    }
+
+    window.onload = () => {
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      setThemeIcon(savedTheme);
+    };
+  </script>
 </body>
 </html>

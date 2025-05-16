@@ -4,6 +4,13 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1002;
+    box-sizing: border-box;
+    transition: left 0.3s, width 0.3s;
 }
 
 header h1 {
@@ -11,7 +18,7 @@ header h1 {
     color: #ffffff; /* Ensures "VidStream" text is visible */
 }
 
-nav a, nav button {
+nav a {
     margin-left: 1rem;
     color: #ffffff; /* Ensures text remains visible on the darker background */
     text-decoration: none;
@@ -20,20 +27,54 @@ nav a, nav button {
     font-size: 1rem;
     cursor: pointer;
 }
+
+/* Theme toggle button */
+#themeToggleBtn {
+    margin-left: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s;
+    color: #fff;
+}
+
+html[data-theme='light'] #themeToggleBtn {
+    color: #232323;
+}
+
+#themeToggleBtn:focus {
+    outline: 2px solid var(--primary-color);
+}
+
+.theme-icon {
+    display: flex;
+    align-items: center;
+    font-size: 1.3rem;
+    transition: color 0.3s, transform 0.3s;
+}
+
+#themeToggleBtn:hover .theme-icon {
+    transform: rotate(-20deg) scale(1.15);
+    color: var(--accent);
+}
 body {
   font-family: 'Poppins', sans-serif;
   margin: 0;
   transition: background 0.3s, color 0.3s;
 }
 
-body[data-theme="dark"] {
+
+html[data-theme="dark"] {
   background-color: #121212;
   color: #ffffff;
 }
 
-body[data-theme="light"] {
-  background-color: #f2f2f2;
-  color: #000000;
+html[data-theme="light"] {
+  background-color: #f9f9f9;
+  color: #232323;
 }
 
 header {
@@ -60,6 +101,7 @@ nav a, nav button {
 
 main {
   padding: 2rem;
+  margin-top: 72px;
 }
 
 .video-card {
@@ -119,14 +161,14 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
-body[data-theme='dark'] {
+html[data-theme='dark'] {
   background-color: var(--bg-dark);
   color: var(--text-dark);
 }
 
-body[data-theme='light'] {
-  background-color: var(--bg-light);
-  color: var(--text-light);
+html[data-theme='light'] {
+  background-color: #f9f9f9;
+  color: #232323;
 }
 
 header {
@@ -136,16 +178,80 @@ header {
   color: white;
   padding: 1rem 2rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   z-index: 100;
   box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+html[data-theme='light'] header {
+  background-color: #fff;
+  color: #232323;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Sidebar styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 90px;
+  background: #181818;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 72px;
+  z-index: 1001;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+  transition: transform 0.3s;
+}
+.sidebar:not(.visible) {
+  transform: translateX(-100%);
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1.5rem;
+  color: #fff;
+  background: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar-link:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+html[data-theme='light'] .sidebar {
+  background: #f4f4f4;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+}
+html[data-theme='light'] .sidebar-link {
+  color: #232323;
+}
+html[data-theme='light'] .sidebar-link:hover {
+  background: #e50914;
+  color: #fff;
+}
+
+html[data-theme='light'] header {
+  background-color: #fff;
+  color: #232323;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 header h1 {
   margin: 0;
   font-size: 1.8rem;
   color: var(--primary-color);
+}
+
+html[data-theme='light'] header h1 {
+  color: #e50914;
 }
 
 nav a, nav button {
@@ -159,15 +265,59 @@ nav a, nav button {
   transition: color 0.3s;
 }
 
+html[data-theme='light'] nav a,
+html[data-theme='light'] nav button {
+  color: #232323;
+}
+
 nav a:hover, nav button:hover {
   color: var(--accent);
+}
+
+html[data-theme='light'] nav a:hover,
+html[data-theme='light'] nav button:hover {
+  color: #e50914;
 }
 
 main {
   padding: 2rem;
   max-width: 1200px;
   margin: auto;
+  margin-left: 90px; /* leave space for sidebar */
+  transition: margin-left 0.3s;
 }
+header {
+  transition: margin-left 0.3s;
+}
+/* Sidebar toggle button */
+#sidebarToggleBtn {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 2002;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+#sidebarToggleBtn:focus {
+  outline: 2px solid var(--primary-color);
+}
+html[data-theme='light'] #sidebarToggleBtn {
+  background: #fff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
 
 .video-list {
   display: flex;
@@ -175,6 +325,7 @@ main {
   gap: 2rem;
   justify-content: space-between;
 }
+
 
 .video-card {
   background: var(--card-bg);
@@ -185,8 +336,18 @@ main {
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
+html[data-theme='light'] .video-card {
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  border: 1px solid #ececec;
+}
+
 .video-card:hover {
   transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+}
+
+html[data-theme='dark'] .video-card:hover {
   box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
 
@@ -196,11 +357,17 @@ main {
   display: block;
 }
 
+
 .video-card h3 {
   padding: 0.8rem 1rem 0 1rem;
   margin: 0;
   font-size: 1rem;
 }
+
+html[data-theme='light'] .video-card h3 {
+  color: #e50914;
+}
+
 
 .video-card button {
   margin: 1rem;
@@ -211,11 +378,22 @@ main {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+html[data-theme='light'] .video-card button {
+  background-color: #e50914;
+  color: #fff;
 }
 
 .video-card button:hover {
   background-color: #c40812;
+}
+
+html[data-theme='light'] .video-card button:hover {
+  background-color: #fff;
+  color: #e50914;
+  border: 1px solid #e50914;
 }
 
 input[type="text"] {
@@ -226,4 +404,13 @@ input[type="text"] {
   border-radius: 8px;
   margin-bottom: 1rem;
   font-size: 1rem;
+  background: #232323;
+  color: #fff;
+  transition: background 0.3s, color 0.3s;
+}
+
+html[data-theme='light'] input[type="text"] {
+  background: #fff;
+  color: #232323;
+  border: 2px solid #e50914;
 }
