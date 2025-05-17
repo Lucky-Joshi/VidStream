@@ -472,3 +472,10 @@ body.sidebar-open header {
   margin-left: 250px;
   width: calc(100% - 250px);
 }
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+}
+.sidebar {
+  transition: transform 0.3s ease;
+}

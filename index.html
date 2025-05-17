@@ -101,6 +101,14 @@
       document.documentElement.setAttribute("data-theme", savedTheme);
       setThemeIcon(savedTheme);
     };
+
+    function setSidebarVisibility(visible) {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        sidebar.style.display = visible ? 'block' : 'none';
+      }
+    }
+
   </script>
 </body>
 </html>
