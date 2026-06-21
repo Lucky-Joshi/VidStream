@@ -14,7 +14,10 @@ export function VideoGrid({
             ref={remoteVideoRef}
             autoPlay
             playsInline
+            muted={false}
+            controls={false}
             className="video-element"
+            style={{ objectFit: 'contain' }}
           />
         ) : (
           <div className="video-placeholder">
@@ -56,6 +59,7 @@ export function VideoGrid({
           playsInline
           muted
           className="video-element"
+          style={{ objectFit: 'cover' }}
         />
         <span className="video-label">
           {isSharingScreen ? '📺 Sharing Screen' : 'You'}

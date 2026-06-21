@@ -35,6 +35,7 @@ export function useSocket() {
     });
 
     socket.on('signal', ({ sender, signal }) => {
+      console.log('Signal received from partner:', signal.type);
       if (onSignalRef.current) {
         onSignalRef.current(signal, sender);
       }

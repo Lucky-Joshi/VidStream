@@ -24,6 +24,8 @@ export function usePeer({ partnerId, socketId, localStream, onSignal, onPartnerD
     (initiator, stream) => {
       destroyPeer();
 
+      console.log(`Creating peer: initiator=${initiator}, stream=${stream ? 'yes' : 'no'}`);
+
       const peer = new SimplePeer({
         initiator,
         stream: stream || undefined,
@@ -32,21 +34,26 @@ export function usePeer({ partnerId, socketId, localStream, onSignal, onPartnerD
       });
 
       peer.on('signal', (data) => {
+        console.log('Peer signal event:', data.type);
         sendSignal(data);
       });
 
       peer.on('connect', () => {
+        console.log('Peer connected');
         setIsPeerConnected(true);
       });
 
       peer.on('stream', (incomingStream) => {
+        console.log('Remote stream received:', incomingStream.getTracks());
         setRemoteStream(incomingStream);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = incomingStream;
+          console.log('Assigned stream to video element');
         }
       });
 
       peer.on('close', () => {
+        console.log('Peer closed');
         setIsPeerConnected(false);
         setRemoteStream(null);
         peerRef.current = null;
@@ -69,13 +76,14 @@ export function usePeer({ partnerId, socketId, localStream, onSignal, onPartnerD
       return;
     }
 
+    console.log(`Creating peer connection - partnerId: ${partnerId}, socketId: ${socketId}, localStream: ${localStream ? 'yes' : 'no'}`);
     const isInitiator = socketId > partnerId;
     createPeer(isInitiator, localStream);
 
     return () => {
       destroyPeer();
     };
-  }, [partnerId, socketId]);
+  }, [partnerId, socketId, localStream]);
 
   useEffect(() => {
     if (!onSignal || !peerRef.current) return;
