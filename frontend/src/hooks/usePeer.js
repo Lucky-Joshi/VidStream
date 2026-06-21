@@ -78,9 +78,9 @@ export function usePeer({ partnerId, socketId, localStream, onSignal, onPartnerD
   }, [partnerId, socketId]);
 
   useEffect(() => {
-    if (!onSignal) return;
+    if (!onSignal || !peerRef.current) return;
 
-    onSignal((signal) => {
+    const handleSignal = (signal) => {
       if (peerRef.current && !peerRef.current.destroyed) {
         try {
           peerRef.current.signal(signal);
@@ -88,7 +88,9 @@ export function usePeer({ partnerId, socketId, localStream, onSignal, onPartnerD
           console.warn('Signal error:', err.message);
         }
       }
-    });
+    };
+
+    onSignal(handleSignal);
   }, [onSignal]);
 
   useEffect(() => {
