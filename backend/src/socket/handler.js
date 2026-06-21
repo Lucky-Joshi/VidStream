@@ -1,7 +1,37 @@
 import { config } from '../config/index.js';
 
+const MAX_ROOM_SIZE = 2;
+
 export function setupSocket(io) {
   io.on('connection', (socket) => {
+    console.log(`User connected: ${socket.id}`);
+
+    socket.on('join-room', () => {
+      const roomId = config.roomId;
+      const room = io.sockets.adapter.rooms.get(roomId);
+      const currentSize = room ? room.size : 0;
+
+      if (currentSize >= MAX_ROOM_SIZE) {
+        socket.emit('room-full');
+        return;
+      }
+
+      socket.join(roomId);
+
+      const updatedRoom = io.sockets.adapter.rooms.get(roomId);
+      const updatedSize = updatedRoom ? updatedRoom.size : 0;
+
+      console.log(`[${roomId}] ${socket.id} joined — room size: ${updatedSize}`);
+
+      if (updatedSize >= MAX_ROOM_SIZE) {
+        const peerIds = [...updatedRoom].filter((id) => id !== socket.id);
+        socket.emit('partner-joined', { peerId: peerIds[0] });
+        socket.to(roomId).emit('partner-joined', { peerId: socket.id });
+      } else {
+        socket.emit('waiting-for-partner');
+      }
+    });
+
     socket.on('signal', (data) => {
       const roomId = config.roomId;
       socket.to(roomId).emit('signal', {
@@ -19,32 +49,9 @@ export function setupSocket(io) {
       });
     });
 
-    socket.on('join-room', () => {
-      const roomId = config.roomId;
-      socket.join(roomId);
-
-      const room = io.sockets.adapter.rooms.get(roomId);
-      const size = room ? room.size : 0;
-
-      console.log(`Room ${roomId} size: ${size}`);
-
-      if (size >= 2) {
-        const peerIds = [...room].filter((id) => id !== socket.id);
-        socket.emit('partner-joined', { peerId: peerIds[0] });
-        socket.to(roomId).emit('partner-joined', { peerId: socket.id });
-      } else {
-        socket.emit('waiting-for-partner');
-      }
-    });
-
     socket.on('disconnect', () => {
       const roomId = config.roomId;
-      const room = io.sockets.adapter.rooms.get(roomId);
-
-      if (room && room.size > 0) {
-        socket.to(roomId).emit('partner-disconnected');
-      }
-
+      socket.to(roomId).emit('partner-disconnected');
       console.log(`User disconnected: ${socket.id}`);
     });
   });
