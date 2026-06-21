@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { MEDIA_CONSTRAINTS, SCREEN_SHARE_CONSTRAINTS } from '../utils/constants';
 
 export function useMedia() {
   const [localStream, setLocalStream] = useState(null);
@@ -9,27 +10,38 @@ export function useMedia() {
   const [permissionError, setPermissionError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const localVideoRef = useRef(null);
+  const screenStreamRef = useRef(null);
+  const localStreamRef = useRef(null);
 
   const requestMedia = useCallback(async () => {
     try {
       setIsLoading(true);
       setPermissionError(null);
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
+      const stream = await navigator.mediaDevices.getUserMedia(MEDIA_CONSTRAINTS);
 
       setLocalStream(stream);
       setIsMicEnabled(true);
       setIsCamEnabled(true);
+
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
     } catch (err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setPermissionError('Camera and microphone access denied. Please allow permissions to use the app.');
-      } else if (err.name === 'NotFoundError') {
-        setPermissionError('No camera or microphone found on your device.');
+        setPermissionError(
+          'Camera and microphone access was denied. Please allow permissions in your browser settings and try again.'
+        );
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setPermissionError(
+          'No camera or microphone found. Please connect a device and try again.'
+        );
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        setPermissionError(
+          'Your camera or microphone is already in use by another application.'
+        );
       } else {
-        setPermissionError(`Failed to access media: ${err.message}`);
+        setPermissionError(`Failed to access media devices: ${err.message}`);
       }
     } finally {
       setIsLoading(false);
@@ -37,72 +49,77 @@ export function useMedia() {
   }, []);
 
   const toggleMic = useCallback(() => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsMicEnabled(audioTrack.enabled);
-      }
+    if (!localStream) return;
+    const audioTrack = localStream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      setIsMicEnabled(audioTrack.enabled);
     }
   }, [localStream]);
 
   const toggleCam = useCallback(() => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsCamEnabled(videoTrack.enabled);
-      }
+    if (!localStream) return;
+    const videoTrack = localStream.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsCamEnabled(videoTrack.enabled);
     }
   }, [localStream]);
 
   const startScreenShare = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false,
+      const stream = await navigator.mediaDevices.getDisplayMedia(SCREEN_SHARE_CONSTRAINTS);
+
+      stream.getVideoTracks()[0].addEventListener('ended', () => {
+        setScreenStream(null);
+        setIsSharingScreen(false);
+        screenStreamRef.current = null;
       });
 
-      stream.getVideoTracks()[0].onended = () => {
-        stopScreenShare();
-      };
-
+      screenStreamRef.current = stream;
       setScreenStream(stream);
       setIsSharingScreen(true);
       return stream;
     } catch (err) {
-      setPermissionError(`Screen share failed: ${err.message}`);
+      if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
+        setPermissionError(`Screen sharing failed: ${err.message}`);
+      }
       return null;
     }
   }, []);
 
   const stopScreenShare = useCallback(() => {
-    if (screenStream) {
-      screenStream.getTracks().forEach((track) => track.stop());
-      setScreenStream(null);
+    const stream = screenStreamRef.current;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      screenStreamRef.current = null;
     }
+    setScreenStream(null);
     setIsSharingScreen(false);
-  }, [screenStream]);
-
-  useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
-    }
-
-    return () => {
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
-      }
-      if (screenStream) {
-        screenStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  });
+  }, []);
 
   const retryPermissions = useCallback(() => {
     setPermissionError(null);
     requestMedia();
   }, [requestMedia]);
+
+  useEffect(() => {
+    localStreamRef.current = localStream;
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
+
+  useEffect(() => {
+    return () => {
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
 
   return {
     localStream,
