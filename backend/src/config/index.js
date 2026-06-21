@@ -5,5 +5,5 @@ export const config = {
   corsOrigin: corsOrigin.includes(',')
     ? corsOrigin.split(',').map((origin) => origin.trim())
     : corsOrigin.trim(),
-  roomId: 'dsa-study-room',
+  roomId: 'vidchat-room',
 };
