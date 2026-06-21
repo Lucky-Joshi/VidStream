@@ -14,6 +14,8 @@ const io = new Server(server, {
     origin: config.corsOrigin,
     methods: ['GET', 'POST'],
   },
+  pingInterval: 10000,
+  pingTimeout: 5000,
 });
 
 app.use(cors({ origin: config.corsOrigin }));
@@ -22,5 +24,6 @@ app.get('/health', healthCheck);
 setupSocket(io);
 
 server.listen(config.port, () => {
-  console.log(`Server running on port ${config.port}`);
+  console.log(`DSA Together server running on port ${config.port}`);
+  console.log(`CORS origin: ${JSON.stringify(config.corsOrigin)}`);
 });
