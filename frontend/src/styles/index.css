@@ -461,6 +461,20 @@ body {
   box-shadow: 0 0 16px var(--danger-glow) !important;
 }
 
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(148, 163, 184, 0.04);
+  border-color: rgba(148, 163, 184, 0.08);
+  color: var(--muted);
+}
+
+.control-btn:disabled:hover {
+  transform: none;
+  background: rgba(148, 163, 184, 0.04);
+  box-shadow: none;
+}
+
 /* --- Permission Prompt --- */
 
 .permission-prompt {

@@ -3,6 +3,7 @@ export function ControlBar({
   isCamEnabled,
   isSharingScreen,
   isPartnerConnected,
+  isScreenShareSupported,
   onToggleMic,
   onToggleCam,
   onStartScreenShare,
@@ -63,15 +64,16 @@ export function ControlBar({
           id="btn-screen-share"
           className={`control-btn ${isSharingScreen ? 'active sharing' : ''}`}
           onClick={isSharingScreen ? onStopScreenShare : onStartScreenShare}
-          title={isSharingScreen ? 'Stop sharing' : 'Share screen'}
-          aria-label={isSharingScreen ? 'Stop sharing screen' : 'Share screen'}
+          disabled={!isScreenShareSupported}
+          title={!isScreenShareSupported ? 'Screen sharing not supported on this device' : (isSharingScreen ? 'Stop sharing' : 'Share screen')}
+          aria-label={!isScreenShareSupported ? 'Screen sharing not supported' : (isSharingScreen ? 'Stop sharing screen' : 'Share screen')}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
             <line x1="8" y1="21" x2="16" y2="21" />
             <line x1="12" y1="17" x2="12" y2="21" />
           </svg>
-          <span className="control-label">{isSharingScreen ? 'Stop' : 'Share'}</span>
+          <span className="control-label">{!isScreenShareSupported ? 'N/A' : (isSharingScreen ? 'Stop' : 'Share')}</span>
         </button>
       </div>
 

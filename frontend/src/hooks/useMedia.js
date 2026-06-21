@@ -9,9 +9,16 @@ export function useMedia() {
   const [isSharingScreen, setIsSharingScreen] = useState(false);
   const [permissionError, setPermissionError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isScreenShareSupported, setIsScreenShareSupported] = useState(true);
   const localVideoRef = useRef(null);
   const screenStreamRef = useRef(null);
   const localStreamRef = useRef(null);
+
+  // Check if screen sharing is supported on this device
+  useEffect(() => {
+    const supported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+    setIsScreenShareSupported(supported);
+  }, []);
 
   const requestMedia = useCallback(async () => {
     try {
@@ -68,6 +75,14 @@ export function useMedia() {
 
   const startScreenShare = useCallback(async () => {
     try {
+      // Check if getDisplayMedia is supported (not available on mobile devices)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        setPermissionError(
+          'Screen sharing is not supported on this device. It\'s only available on desktop browsers (Chrome, Firefox, Safari, Edge).'
+        );
+        return null;
+      }
+
       const stream = await navigator.mediaDevices.getDisplayMedia(SCREEN_SHARE_CONSTRAINTS);
 
       stream.getVideoTracks()[0].addEventListener('ended', () => {
@@ -129,6 +144,7 @@ export function useMedia() {
     isSharingScreen,
     permissionError,
     isLoading,
+    isScreenShareSupported,
     localVideoRef,
     requestMedia,
     toggleMic,
