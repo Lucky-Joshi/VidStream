@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useCall } from '../hooks/useCall';
 import { ConnectionStatus } from '../components/ConnectionStatus';
 import { PermissionPrompt } from '../components/PermissionPrompt';
+import { RoomFull } from '../components/RoomFull';
 import { VideoGrid } from '../components/VideoGrid';
 import { ControlBar } from '../components/ControlBar';
-import { CONNECTION_STATES } from '../utils/constants';
 
 export function CallPage() {
   const call = useCall();
@@ -15,10 +15,14 @@ export function CallPage() {
 
   if (call.isLoading) {
     return (
-      <div className="loading-screen">
+      <div id="loading-screen" className="loading-screen">
         <div className="loading-content">
+          <div className="loading-brand">
+            <h1 className="loading-title">DSA Together</h1>
+            <p className="loading-subtitle">Pair Programming Made Simple</p>
+          </div>
           <div className="spinner" />
-          <p>Accessing camera and microphone...</p>
+          <p className="loading-message">Accessing camera and microphone...</p>
         </div>
       </div>
     );
@@ -33,8 +37,12 @@ export function CallPage() {
     );
   }
 
+  if (call.isRoomFull) {
+    return <RoomFull />;
+  }
+
   return (
-    <div className="call-container">
+    <div id="call-container" className="call-container">
       <ConnectionStatus state={call.connectionState} />
 
       <VideoGrid
@@ -42,6 +50,7 @@ export function CallPage() {
         localVideoRef={call.localVideoRef}
         isSharingScreen={call.isSharingScreen}
         isPartnerConnected={call.partnerId !== null}
+        connectionState={call.connectionState}
       />
 
       <ControlBar
@@ -53,7 +62,7 @@ export function CallPage() {
         onToggleCam={call.toggleCam}
         onStartScreenShare={call.startScreenShare}
         onStopScreenShare={call.stopScreenShare}
-        onLeaveCall={() => window.location.reload()}
+        onLeaveCall={call.leaveCall}
       />
     </div>
   );
