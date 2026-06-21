@@ -24,6 +24,6 @@ app.get('/health', healthCheck);
 setupSocket(io);
 
 server.listen(config.port, () => {
-  console.log(`DSA Together server running on port ${config.port}`);
+  console.log(`VidChat server running on port ${config.port}`);
   console.log(`CORS origin: ${JSON.stringify(config.corsOrigin)}`);
 });
