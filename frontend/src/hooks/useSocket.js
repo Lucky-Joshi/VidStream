@@ -6,10 +6,11 @@ export function useSocket() {
   const [connectionState, setConnectionState] = useState(CONNECTION_STATES.CONNECTING);
   const [partnerId, setPartnerId] = useState(null);
   const [socketId, setSocketId] = useState(null);
+  const [isRoomFull, setIsRoomFull] = useState(false);
   const socketRef = useRef(null);
-
   const onSignalRef = useRef(null);
   const onMediaStateRef = useRef(null);
+  const onPartnerDisconnectedRef = useRef(null);
 
   useEffect(() => {
     const socket = connectSocket();
@@ -19,6 +20,7 @@ export function useSocket() {
       setSocketId(socket.id);
       setConnectionState(CONNECTION_STATES.CONNECTING);
       setPartnerId(null);
+      setIsRoomFull(false);
       joinRoom();
     });
 
@@ -38,23 +40,35 @@ export function useSocket() {
       }
     });
 
+    socket.on('media-state', ({ type, enabled }) => {
+      if (onMediaStateRef.current) {
+        onMediaStateRef.current(type, enabled);
+      }
+    });
+
     socket.on('partner-disconnected', () => {
       setConnectionState(CONNECTION_STATES.WAITING);
       setPartnerId(null);
+      if (onPartnerDisconnectedRef.current) {
+        onPartnerDisconnectedRef.current();
+      }
+    });
+
+    socket.on('room-full', () => {
+      setIsRoomFull(true);
     });
 
     socket.on('disconnect', () => {
       setConnectionState(CONNECTION_STATES.RECONNECTING);
     });
 
-    socket.on('connect_error', () => {
-      setConnectionState(CONNECTION_STATES.RECONNECTING);
+    socket.on('reconnect', () => {
+      setConnectionState(CONNECTION_STATES.CONNECTING);
+      joinRoom();
     });
 
-    socket.on('media-state', ({ type, enabled }) => {
-      if (onMediaStateRef.current) {
-        onMediaStateRef.current(type, enabled);
-      }
+    socket.on('connect_error', () => {
+      setConnectionState(CONNECTION_STATES.RECONNECTING);
     });
 
     return () => {
@@ -70,12 +84,18 @@ export function useSocket() {
     onMediaStateRef.current = handler;
   }, []);
 
+  const onPartnerDisconnected = useCallback((handler) => {
+    onPartnerDisconnectedRef.current = handler;
+  }, []);
+
   return {
     connectionState,
     partnerId,
     socketId,
+    isRoomFull,
     socket: socketRef.current,
     onSignal,
     onMediaState,
+    onPartnerDisconnected,
   };
 }
