@@ -3,12 +3,14 @@ export function VideoGrid({
   localVideoRef,
   isSharingScreen,
   isPartnerConnected,
+  connectionState,
 }) {
   return (
-    <div className="video-grid">
+    <div id="video-grid" className="video-grid">
       <div className="video-container remote-video">
         {isPartnerConnected ? (
           <video
+            id="remote-video-element"
             ref={remoteVideoRef}
             autoPlay
             playsInline
@@ -17,20 +19,38 @@ export function VideoGrid({
         ) : (
           <div className="video-placeholder">
             <div className="placeholder-avatar">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
               </svg>
             </div>
-            <p className="placeholder-text">Waiting for partner...</p>
+            <p className="placeholder-text">Waiting for your study partner...</p>
+            <p className="placeholder-hint">
+              Share this app link with your partner to get started
+            </p>
           </div>
+        )}
+        {isPartnerConnected && (
+          <span className="video-label partner-label">Partner</span>
         )}
       </div>
 
-      <div className={`video-container local-video ${isSharingScreen ? 'screen-share' : ''}`}>
+      <div
+        className={`video-container local-video ${
+          isSharingScreen ? 'screen-sharing-active' : ''
+        }`}
+      >
         <video
+          id="local-video-element"
           ref={localVideoRef}
           autoPlay
           playsInline
@@ -38,7 +58,7 @@ export function VideoGrid({
           className="video-element"
         />
         <span className="video-label">
-          {isSharingScreen ? 'Your Screen' : 'You'}
+          {isSharingScreen ? '📺 Sharing Screen' : 'You'}
         </span>
       </div>
     </div>
