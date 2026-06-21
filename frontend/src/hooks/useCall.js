@@ -10,49 +10,56 @@ export function useCall() {
   const peer = usePeer({
     partnerId: socket.partnerId,
     socketId: socket.socketId,
+    localStream: media.localStream,
     onSignal: socket.onSignal,
+    onPartnerDisconnected: socket.onPartnerDisconnected,
   });
 
-  const streamAddedRef = useRef(false);
-  const prevPartnerId = useRef(null);
+  const prevMicRef = useRef(media.isMicEnabled);
+  const prevCamRef = useRef(media.isCamEnabled);
 
   useEffect(() => {
-    if (media.localStream) {
-      sendMediaState('camera', media.isCamEnabled);
+    if (!media.localStream || !socket.partnerId) return;
+
+    if (prevMicRef.current !== media.isMicEnabled) {
       sendMediaState('microphone', media.isMicEnabled);
+      prevMicRef.current = media.isMicEnabled;
     }
-  }, [media.localStream, media.isCamEnabled, media.isMicEnabled]);
+
+    if (prevCamRef.current !== media.isCamEnabled) {
+      sendMediaState('camera', media.isCamEnabled);
+      prevCamRef.current = media.isCamEnabled;
+    }
+  }, [media.localStream, media.isMicEnabled, media.isCamEnabled, socket.partnerId]);
 
   useEffect(() => {
-    if (prevPartnerId.current && !socket.partnerId) {
-      streamAddedRef.current = false;
-    }
-    prevPartnerId.current = socket.partnerId;
+    if (!peer.isPeerConnected) return;
 
-    if (!socket.partnerId || !media.localStream) return;
-
-    if (!streamAddedRef.current) {
-      peer.replaceStream(media.localStream);
-      streamAddedRef.current = true;
+    if (media.isSharingScreen && media.screenStream) {
+      peer.replaceTrack(media.screenStream);
+    } else if (media.localStream) {
+      peer.replaceTrack(media.localStream);
     }
-  }, [socket.partnerId, media.localStream, peer.replaceStream]);
+  }, [
+    media.isSharingScreen,
+    media.screenStream,
+    media.localStream,
+    peer.isPeerConnected,
+    peer.replaceTrack,
+  ]);
 
-  useEffect(() => {
-    if (!media.isSharingScreen) {
-      if (streamAddedRef.current && media.localStream) {
-        peer.replaceStream(media.localStream);
-      }
-      return;
+  const leaveCall = () => {
+    media.stopScreenShare();
+    if (media.localStream) {
+      media.localStream.getTracks().forEach((track) => track.stop());
     }
-
-    if (media.screenStream) {
-      peer.replaceStream(media.screenStream);
-    }
-  }, [media.isSharingScreen, media.screenStream, media.localStream, peer.replaceStream]);
+    window.location.reload();
+  };
 
   return {
     ...media,
     ...socket,
     ...peer,
+    leaveCall,
   };
 }
