@@ -1,6 +1,6 @@
-# DSA Together
+# VidChat
 
-A lightweight 2-person DSA study application with real-time video calling, audio calling, and screen sharing. Built for pair programming and coding interview preparation.
+A lightweight 2-person VidChat application with real-time video calling, audio calling, and screen sharing. Built for pair programming and coding interview preparation.
 
 No authentication. No database. No chat. Just instant peer-to-peer connection.
 
@@ -112,7 +112,7 @@ Open `http://localhost:5173` in **two separate browser windows** (or tabs) to si
 ## How It Works
 
 1. **Open the app** — Camera and microphone permissions are requested
-2. **Auto-join** — Automatically connects to the fixed room (`dsa-study-room`)
+2. **Auto-join** — Automatically connects to the fixed room (`vidchat-room`)
 3. **Wait** — Shows a waiting screen until the second user joins
 4. **Connect** — WebRTC peer connection is established via Socket.IO signaling
 5. **Study** — Video and audio streams flow directly peer-to-peer
@@ -186,7 +186,7 @@ User A (Browser)                    User B (Browser)
 | STUN Server 1   | `stun:stun.l.google.com:19302`   |
 | STUN Server 2   | `stun:stun1.l.google.com:19302`  |
 | Trickle ICE     | Enabled                          |
-| Room ID         | `dsa-study-room` (fixed)         |
+| Room ID         | `vidchat-room` (fixed)           |
 | Max Users       | 2                                |
 
 ## License
