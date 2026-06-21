@@ -1,4 +1,4 @@
-export const ROOM_ID = 'dsa-study-room';
+export const ROOM_ID = 'vidchat-room';
 
 export const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
