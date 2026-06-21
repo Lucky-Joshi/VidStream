@@ -18,7 +18,7 @@ export function CallPage() {
       <div id="loading-screen" className="loading-screen">
         <div className="loading-content">
           <div className="loading-brand">
-            <h1 className="loading-title">DSA Together</h1>
+            <h1 className="loading-title">VidChat</h1>
             <p className="loading-subtitle">Pair Programming Made Simple</p>
           </div>
           <div className="spinner" />
