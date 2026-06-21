@@ -6,15 +6,11 @@ let socket = null;
 
 export function connectSocket() {
   if (socket) {
-    if (socket.connected) return socket;
-    socket.disconnect();
+    return socket;
   }
 
   socket = io(SOCKET_URL, {
     transports: ['websocket', 'polling'],
-    reconnectionAttempts: Infinity,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
   });
 
   return socket;
@@ -25,7 +21,7 @@ export function getSocket() {
 }
 
 export function joinRoom() {
-  if (socket?.connected) {
+  if (socket) {
     socket.emit('join-room');
   }
 }
@@ -38,13 +34,13 @@ export function disconnectSocket() {
 }
 
 export function sendSignal(signal) {
-  if (socket?.connected) {
+  if (socket) {
     socket.emit('signal', { signal });
   }
 }
 
 export function sendMediaState(type, enabled) {
-  if (socket?.connected) {
+  if (socket) {
     socket.emit('media-state', { type, enabled });
   }
 }
