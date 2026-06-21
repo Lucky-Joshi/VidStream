@@ -1,5 +1,9 @@
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
 export const config = {
-  port: process.env.PORT || 3001,
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  port: parseInt(process.env.PORT, 10) || 3001,
+  corsOrigin: corsOrigin.includes(',')
+    ? corsOrigin.split(',').map((origin) => origin.trim())
+    : corsOrigin.trim(),
   roomId: 'dsa-study-room',
 };
