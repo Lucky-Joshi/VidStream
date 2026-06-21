@@ -1,14 +1,29 @@
 # DSA Together
 
-A lightweight 2-person DSA study application with video calling, audio calling, and screen sharing.
+A lightweight 2-person DSA study application with real-time video calling, audio calling, and screen sharing. Built for pair programming and coding interview preparation.
 
-No authentication. No database. No chat. Just instant peer-to-peer connection for coding practice.
+No authentication. No database. No chat. Just instant peer-to-peer connection.
 
 ## Tech Stack
 
-- **Frontend:** React, Vite, CSS3, Socket.IO Client, Simple Peer
-- **Backend:** Node.js, Express, Socket.IO
-- **Deployment:** Frontend → Vercel, Backend → Render
+| Layer      | Technology                                  |
+|------------|---------------------------------------------|
+| Frontend   | React 18, Vite, CSS3, Socket.IO Client      |
+| WebRTC     | Simple Peer                                 |
+| Backend    | Node.js, Express, Socket.IO                 |
+| Deployment | Frontend → Vercel, Backend → Render         |
+
+## Features
+
+- **Video Calling** — Enable/disable camera with real-time toggle
+- **Audio Calling** — Mute/unmute microphone with echo cancellation
+- **Screen Sharing** — Share your screen for code walkthroughs
+- **Auto-Connect** — Automatically joins the fixed study room
+- **Connection Recovery** — Reconnects on network interruption
+- **Permission Handling** — Friendly error messages for denied permissions
+- **Room Guard** — Prevents third users from joining
+- **Responsive Design** — Desktop, tablet, and mobile support
+- **Dark Theme** — Eye-friendly design optimized for long study sessions
 
 ## Folder Structure
 
@@ -16,41 +31,50 @@ No authentication. No database. No chat. Just instant peer-to-peer connection fo
 vidchat/
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        # React components
+│   │   ├── components/          # Reusable UI components
 │   │   │   ├── ConnectionStatus.jsx
 │   │   │   ├── ControlBar.jsx
 │   │   │   ├── PermissionPrompt.jsx
+│   │   │   ├── RoomFull.jsx
 │   │   │   └── VideoGrid.jsx
-│   │   ├── hooks/             # Custom React hooks
-│   │   │   ├── useCall.js
-│   │   │   ├── useMedia.js
-│   │   │   ├── usePeer.js
-│   │   │   └── useSocket.js
-│   │   ├── pages/             # Page components
+│   │   ├── hooks/               # Custom React hooks
+│   │   │   ├── useCall.js       # Orchestrates all hooks
+│   │   │   ├── useMedia.js      # Camera, mic, screen share
+│   │   │   ├── usePeer.js       # WebRTC peer connection
+│   │   │   └── useSocket.js     # Socket.IO connection
+│   │   ├── pages/               # Page-level components
 │   │   │   └── CallPage.jsx
-│   │   ├── services/          # External service integrations
+│   │   ├── services/            # External service layer
 │   │   │   └── socket.js
-│   │   ├── styles/            # Global styles
+│   │   ├── styles/              # Global CSS
 │   │   │   └── index.css
-│   │   ├── utils/             # Constants and utilities
+│   │   ├── utils/               # Constants and config
 │   │   │   └── constants.js
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── .env
+│   ├── .env.example
 │   ├── index.html
 │   ├── package.json
 │   └── vite.config.js
 ├── backend/
 │   ├── src/
-│   │   ├── config/            # Server configuration
+│   │   ├── config/              # Server configuration
 │   │   │   └── index.js
-│   │   ├── controllers/       # Route handlers
+│   │   ├── controllers/         # HTTP route handlers
 │   │   │   └── health.js
-│   │   ├── socket/            # Socket.IO signaling
+│   │   ├── socket/              # Socket.IO signaling
 │   │   │   └── handler.js
-│   │   └── index.js           # Server entry point
+│   │   └── index.js             # Server entry point
 │   ├── .env
+│   ├── .env.example
 │   └── package.json
+├── docs/                        # Documentation
+│   ├── PRD.md
+│   ├── TRD.md
+│   ├── DESIGN.md
+│   ├── APP_FLOW.md
+│   └── USER_FLOW.md
 └── README.md
 ```
 
@@ -59,7 +83,7 @@ vidchat/
 ### Prerequisites
 
 - Node.js 18+
-- npm
+- npm 9+
 
 ### Backend Setup
 
@@ -69,6 +93,8 @@ npm install
 npm run dev
 ```
 
+The server starts on `http://localhost:3001`.
+
 ### Frontend Setup
 
 ```bash
@@ -77,59 +103,92 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` in two browser windows to test.
+The app opens at `http://localhost:5173`.
+
+### Testing Locally
+
+Open `http://localhost:5173` in **two separate browser windows** (or tabs) to simulate two users connecting.
 
 ## How It Works
 
-1. Open the app — camera and microphone permissions are requested
-2. Automatically joins the fixed study room (`dsa-study-room`)
-3. Waits for a partner to join
-4. WebRTC peer connection is established via Socket.IO signaling
-5. Video and audio streams flow peer-to-peer
-6. Use the control bar to mute mic, toggle camera, share screen, or leave
-
-## Deployment
-
-### Backend (Render)
-
-1. Push the `backend/` directory to a new repository
-2. Create a new Web Service on Render
-3. Set:
-   - **Build Command:** `npm install`
-   - **Start Command:** `node src/index.js`
-4. Add environment variable: `CORS_ORIGIN=https://your-frontend-url.vercel.app`
-
-### Frontend (Vercel)
-
-1. Push the `frontend/` directory to a new repository
-2. Import project in Vercel
-3. Set:
-   - **Framework:** Vite
-   - **Root Directory:** `frontend`
-4. Add environment variable: `VITE_SOCKET_URL=https://your-backend-url.onrender.com`
+1. **Open the app** — Camera and microphone permissions are requested
+2. **Auto-join** — Automatically connects to the fixed room (`dsa-study-room`)
+3. **Wait** — Shows a waiting screen until the second user joins
+4. **Connect** — WebRTC peer connection is established via Socket.IO signaling
+5. **Study** — Video and audio streams flow directly peer-to-peer
+6. **Share** — Use the control bar to share your screen
+7. **Leave** — Click leave to end the session
 
 ## Environment Variables
 
-### Backend
+### Backend (`backend/.env`)
 
-| Variable      | Default                 | Description          |
-|---------------|-------------------------|----------------------|
-| `PORT`        | `3001`                  | Server port          |
-| `CORS_ORIGIN` | `http://localhost:5173` | Allowed CORS origin  |
+| Variable       | Default                 | Description                    |
+|----------------|-------------------------|--------------------------------|
+| `PORT`         | `3001`                  | Server port                    |
+| `CORS_ORIGIN`  | `http://localhost:5173` | Allowed CORS origins (comma-separated) |
 
-### Frontend
+### Frontend (`frontend/.env`)
 
-| Variable          | Default                 | Description        |
-|-------------------|-------------------------|--------------------|
-| `VITE_SOCKET_URL` | `http://localhost:3001` | Backend Socket URL |
+| Variable           | Default                 | Description          |
+|--------------------|-------------------------|----------------------|
+| `VITE_SOCKET_URL`  | `http://localhost:3001` | Backend Socket.IO URL |
 
-## Features
+## Deployment
 
-- Video calling with camera toggle
-- Audio calling with mute/unmute
-- Screen sharing with one click
-- Local video preview (picture-in-picture)
-- Automatic reconnection
-- Permission error handling
-- Responsive design (desktop, tablet, mobile)
-- Dark theme optimized for study sessions
+### Backend → Render
+
+1. Create a **Web Service** on [Render](https://render.com)
+2. Connect your repository
+3. Configure:
+   - **Root Directory:** `backend`
+   - **Build Command:** `npm install`
+   - **Start Command:** `node src/index.js`
+4. Add environment variable:
+   ```
+   CORS_ORIGIN=https://your-frontend.vercel.app
+   ```
+
+### Frontend → Vercel
+
+1. Import your project on [Vercel](https://vercel.com)
+2. Configure:
+   - **Framework Preset:** Vite
+   - **Root Directory:** `frontend`
+3. Add environment variable:
+   ```
+   VITE_SOCKET_URL=https://your-backend.onrender.com
+   ```
+
+## Architecture
+
+```
+User A (Browser)                    User B (Browser)
+     │                                    │
+     ├── getUserMedia()                   ├── getUserMedia()
+     │                                    │
+     ├── Socket.IO ────────┐    ┌──────── Socket.IO
+     │                     ▼    ▼              │
+     │              ┌─────────────────┐        │
+     │              │  Signal Server  │        │
+     │              │  (Express +     │        │
+     │              │   Socket.IO)    │        │
+     │              └─────────────────┘        │
+     │                                         │
+     └── WebRTC (Peer-to-Peer) ───────────────┘
+         Video / Audio / Screen Share
+```
+
+## WebRTC Configuration
+
+| Setting         | Value                            |
+|-----------------|----------------------------------|
+| STUN Server 1   | `stun:stun.l.google.com:19302`   |
+| STUN Server 2   | `stun:stun1.l.google.com:19302`  |
+| Trickle ICE     | Enabled                          |
+| Room ID         | `dsa-study-room` (fixed)         |
+| Max Users       | 2                                |
+
+## License
+
+MIT
