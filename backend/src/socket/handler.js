@@ -1,7 +1,5 @@
 import { config } from '../config/index.js';
 
-const rooms = {};
-
 export function setupSocket(io) {
   io.on('connection', (socket) => {
     socket.on('signal', (data) => {
@@ -23,24 +21,16 @@ export function setupSocket(io) {
 
     socket.on('join-room', () => {
       const roomId = config.roomId;
-
       socket.join(roomId);
 
-      if (!rooms[roomId]) {
-        rooms[roomId] = [];
-      }
+      const room = io.sockets.adapter.rooms.get(roomId);
+      const size = room ? room.size : 0;
 
-      if (!rooms[roomId].includes(socket.id)) {
-        rooms[roomId].push(socket.id);
-      }
+      console.log(`Room ${roomId} size: ${size}`);
 
-      const roomSize = io.sockets.adapter.rooms.get(roomId)?.size || 0;
-      console.log(`Room ${roomId}: ${roomSize} sockets, ${rooms[roomId].length} tracked`);
-
-      const peers = rooms[roomId].filter((id) => id !== socket.id);
-
-      if (peers.length > 0) {
-        socket.emit('partner-joined', { peerId: peers[peers.length - 1] });
+      if (size >= 2) {
+        const peerIds = [...room].filter((id) => id !== socket.id);
+        socket.emit('partner-joined', { peerId: peerIds[0] });
         socket.to(roomId).emit('partner-joined', { peerId: socket.id });
       } else {
         socket.emit('waiting-for-partner');
@@ -49,13 +39,13 @@ export function setupSocket(io) {
 
     socket.on('disconnect', () => {
       const roomId = config.roomId;
-      socket.to(roomId).emit('partner-disconnected');
-      if (rooms[roomId]) {
-        rooms[roomId] = rooms[roomId].filter((id) => id !== socket.id);
-        if (rooms[roomId].length === 0) {
-          delete rooms[roomId];
-        }
+      const room = io.sockets.adapter.rooms.get(roomId);
+
+      if (room && room.size > 0) {
+        socket.to(roomId).emit('partner-disconnected');
       }
+
+      console.log(`User disconnected: ${socket.id}`);
     });
   });
 }
