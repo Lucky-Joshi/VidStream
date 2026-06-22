@@ -9,7 +9,7 @@ export function usePeer({
   onOffer,
   onAnswer,
   onIceCandidate,
-  onPartnerDisconnected,
+  onUserLeft,
 }) {
   const [remoteStream, setRemoteStream] = useState(null);
   const [isPeerConnected, setIsPeerConnected] = useState(false);
@@ -38,6 +38,7 @@ export function usePeer({
       peer.onconnectionstatechange = null;
       peer.oniceconnectionstatechange = null;
       peer.close();
+      console.log('[PEER] PEER CONNECTION CLOSED');
       peerRef.current = null;
     }
     pendingIceCandidatesRef.current = [];
@@ -48,6 +49,7 @@ export function usePeer({
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
     }
+    console.log('[PEER] REMOTE STREAM CLEARED');
   }, []);
 
   const createPeerConnection = useCallback(() => {
@@ -233,15 +235,16 @@ export function usePeer({
   }, [onIceCandidate, createPeerConnection]);
 
   useEffect(() => {
-    if (!onPartnerDisconnected) {
+    if (!onUserLeft) {
       return;
     }
 
-    onPartnerDisconnected(() => {
+    onUserLeft(() => {
+      console.log('[PEER] USER LEFT RECEIVED');
       activePeerIdRef.current = null;
       destroyPeer();
     });
-  }, [onPartnerDisconnected, destroyPeer]);
+  }, [onUserLeft, destroyPeer]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
