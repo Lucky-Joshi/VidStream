@@ -1,6 +1,53 @@
 import { config } from '../config/index.js';
 
 const MAX_ROOM_SIZE = 2;
+const roomUsers = new Map();
+
+function getRoomSet(roomId) {
+  if (!roomUsers.has(roomId)) {
+    roomUsers.set(roomId, new Set());
+  }
+  return roomUsers.get(roomId);
+}
+
+function pruneDisconnectedUsers(io, roomId) {
+  const users = getRoomSet(roomId);
+  for (const socketId of [...users]) {
+    if (!io.sockets.sockets.has(socketId)) {
+      users.delete(socketId);
+    }
+  }
+  return users;
+}
+
+function cleanupUserFromRoom(io, socket, reason) {
+  const roomId = config.roomId;
+  const users = pruneDisconnectedUsers(io, roomId);
+  const hadUser = users.delete(socket.id);
+
+  socket.leave(roomId);
+  console.log(`[BACKEND] ROOM CLEANED: ${socket.id} removed=${hadUser} reason=${reason}`);
+
+  if (!hadUser) {
+    if (users.size === 0 && roomUsers.has(roomId)) {
+      roomUsers.delete(roomId);
+      console.log(`[BACKEND] ROOM DELETED: ${roomId}`);
+    }
+    return;
+  }
+
+  console.log(`[BACKEND] ROOM SIZE: ${users.size}`);
+
+  for (const peerId of users) {
+    io.to(peerId).emit('user-left', { peerId: socket.id });
+    io.to(peerId).emit('waiting-for-partner');
+  }
+
+  if (users.size === 0) {
+    roomUsers.delete(roomId);
+    console.log(`[BACKEND] ROOM DELETED: ${roomId}`);
+  }
+}
 
 export function setupSocket(io) {
   io.on('connection', (socket) => {
@@ -8,33 +55,29 @@ export function setupSocket(io) {
 
     socket.on('join-room', () => {
       const roomId = config.roomId;
-      const room = io.sockets.adapter.rooms.get(roomId);
-      const currentSize = room ? room.size : 0;
+      const users = pruneDisconnectedUsers(io, roomId);
 
       console.log(
-        `[BACKEND] JOIN-ROOM: ${socket.id} attempting to join ${roomId} (size=${currentSize})`
+        `[BACKEND] JOIN-ROOM: ${socket.id} attempting to join ${roomId} (size=${users.size})`
       );
 
-      if (currentSize >= MAX_ROOM_SIZE) {
-        console.log(`[BACKEND] JOIN-ROOM: room full, rejecting ${socket.id}`);
+      if (users.size >= MAX_ROOM_SIZE && !users.has(socket.id)) {
+        console.log('[BACKEND] ROOM FULL');
         socket.emit('room-full');
         return;
       }
 
+      const hadUser = users.has(socket.id);
+      users.add(socket.id);
       socket.join(roomId);
+      console.log(`[BACKEND] USER JOINED: ${socket.id}`);
+      console.log(`[BACKEND] ROOM SIZE: ${users.size}`);
 
-      const updatedRoom = io.sockets.adapter.rooms.get(roomId);
-      const updatedSize = updatedRoom ? updatedRoom.size : 0;
-      const members = updatedRoom ? Array.from(updatedRoom) : [];
-
-      console.log(
-        `[BACKEND] JOIN-ROOM: ${socket.id} joined ${roomId} (size=${updatedSize}, members=${members.join(', ')})`
-      );
-
-      if (updatedSize === 1) {
+      if (users.size === 1) {
         console.log('[BACKEND] PARTNER-READY: waiting-for-partner');
         socket.emit('waiting-for-partner');
-      } else if (updatedSize === 2) {
+      } else if (users.size === 2 && !hadUser) {
+        const members = [...users];
         const existingPeerId = members.find((id) => id !== socket.id);
         if (!existingPeerId) {
           return;
@@ -52,7 +95,7 @@ export function setupSocket(io) {
         io.to(existingPeerId).emit('ready', { peerId: socket.id, shouldCreateOffer: false });
         socket.emit('ready', { peerId: existingPeerId, shouldCreateOffer: true });
       } else {
-        console.log(`[BACKEND] JOIN-ROOM: unexpected room size=${updatedSize}`);
+        console.log(`[BACKEND] ROOM SIZE: ${users.size}`);
       }
     });
 
@@ -87,18 +130,14 @@ export function setupSocket(io) {
       });
     });
 
-    socket.on('disconnect', () => {
-      const roomId = config.roomId;
-      const room = io.sockets.adapter.rooms.get(roomId);
-      const remainingSize = room ? room.size : 0;
-      console.log(
-        `[BACKEND] DISCONNECT: ${socket.id} disconnected from ${roomId} (remaining=${remainingSize})`
-      );
+    socket.on('leave-room', () => {
+      console.log(`[BACKEND] USER LEFT MANUALLY: ${socket.id}`);
+      cleanupUserFromRoom(io, socket, 'manual-leave');
+    });
 
-      socket.to(roomId).emit('partner-disconnected', { peerId: socket.id });
-      if (remainingSize === 1) {
-        socket.to(roomId).emit('waiting-for-partner');
-      }
+    socket.on('disconnect', () => {
+      console.log(`[BACKEND] USER DISCONNECTED: ${socket.id}`);
+      cleanupUserFromRoom(io, socket, 'disconnect');
     });
 
     socket.on('error', (err) => {
