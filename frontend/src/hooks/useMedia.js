@@ -25,13 +25,16 @@ export function useMedia() {
       setIsLoading(true);
       setPermissionError(null);
 
+      console.log('[MEDIA] Requesting camera and microphone...');
       const stream = await navigator.mediaDevices.getUserMedia(MEDIA_CONSTRAINTS);
 
+      console.log('[MEDIA] LOCAL STREAM ACQUIRED - tracks:', stream.getTracks().length);
       setLocalStream(stream);
       setIsMicEnabled(true);
       setIsCamEnabled(true);
 
       if (localVideoRef.current) {
+        console.log('[MEDIA] Attaching local stream to video element');
         localVideoRef.current.srcObject = stream;
       }
     } catch (err) {
