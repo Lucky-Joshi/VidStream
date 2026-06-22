@@ -39,13 +39,19 @@ export function useCall() {
   useEffect(() => {
     if (!peer.isPeerConnected) return;
 
-    if (media.isSharingScreen && media.screenStream) {
-      console.log('[useCall] Replacing tracks with screen stream');
-      peer.replaceTrack(media.screenStream);
-    } else if (media.localStream) {
-      console.log('[useCall] Replacing tracks with camera stream');
-      peer.replaceTrack(media.localStream);
-    }
+    const syncOutgoingVideoTrack = async () => {
+      try {
+        if (media.isSharingScreen && media.screenStream) {
+          await peer.replaceTrack(media.screenStream);
+        } else if (media.localStream) {
+          await peer.replaceTrack(media.localStream);
+        }
+      } catch (error) {
+        console.error('[CALL] SCREEN SHARE ERROR:', error);
+      }
+    };
+
+    syncOutgoingVideoTrack();
   }, [
     media.isSharingScreen,
     media.screenStream,
@@ -53,6 +59,58 @@ export function useCall() {
     peer.isPeerConnected,
     peer.replaceTrack,
   ]);
+
+  const restoreCameraTrack = async () => {
+    if (!media.localStream) {
+      return;
+    }
+
+    try {
+      if (peer.isPeerConnected) {
+        await peer.replaceTrack(media.localStream);
+      }
+      console.log('[CALL] CAMERA RESTORED');
+    } catch (error) {
+      console.error('[CALL] SCREEN SHARE ERROR:', error);
+    }
+  };
+
+  const startScreenShare = async () => {
+    const stream = await media.startScreenShare(async () => {
+      await restoreCameraTrack();
+    });
+    if (!stream) {
+      return;
+    }
+
+    try {
+      if (peer.isPeerConnected) {
+        await peer.replaceTrack(stream);
+      }
+      console.log('[CALL] SCREEN SHARE STARTED');
+    } catch (error) {
+      console.error('[CALL] SCREEN SHARE ERROR:', error);
+    }
+  };
+
+  const stopScreenShare = async () => {
+    media.stopScreenShare();
+    await restoreCameraTrack();
+  };
+
+  const switchCamera = async () => {
+    try {
+      const stream = await media.switchCamera();
+      if (!stream || media.isSharingScreen) {
+        return;
+      }
+      if (peer.isPeerConnected) {
+        await peer.replaceTrack(stream);
+      }
+    } catch (error) {
+      console.error('[CALL] SCREEN SHARE ERROR:', error);
+    }
+  };
 
   const leaveCall = () => {
     console.log('[CALL] LEAVE CLICKED');
@@ -66,6 +124,9 @@ export function useCall() {
     ...media,
     ...socket,
     ...peer,
+    startScreenShare,
+    stopScreenShare,
+    switchCamera,
     leaveCall,
   };
 }
