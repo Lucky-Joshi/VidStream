@@ -121,6 +121,29 @@ export function useMedia() {
     requestMedia();
   }, [requestMedia]);
 
+  const stopAllMedia = useCallback(() => {
+    const currentLocalStream = localStreamRef.current;
+    if (currentLocalStream) {
+      currentLocalStream.getTracks().forEach((track) => track.stop());
+    }
+
+    const currentScreenStream = screenStreamRef.current;
+    if (currentScreenStream) {
+      currentScreenStream.getTracks().forEach((track) => track.stop());
+    }
+
+    localStreamRef.current = null;
+    screenStreamRef.current = null;
+    setLocalStream(null);
+    setScreenStream(null);
+    setIsSharingScreen(false);
+    setIsMicEnabled(false);
+    setIsCamEnabled(false);
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+  }, []);
+
   useEffect(() => {
     localStreamRef.current = localStream;
     if (localVideoRef.current && localStream) {
@@ -154,6 +177,7 @@ export function useMedia() {
     toggleCam,
     startScreenShare,
     stopScreenShare,
+    stopAllMedia,
     retryPermissions,
   };
 }
