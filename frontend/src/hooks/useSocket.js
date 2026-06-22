@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { connectSocket, joinRoom, disconnectSocket } from '../services/socket';
+import { connectSocket, joinRoom } from '../services/socket';
 import { CONNECTION_STATES } from '../utils/constants';
 
 export function useSocket() {
