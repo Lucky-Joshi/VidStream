@@ -9,9 +9,11 @@ export function useCall() {
   const socket = useSocket();
   const peer = usePeer({
     partnerId: socket.partnerId,
-    socketId: socket.socketId,
     localStream: media.localStream,
-    onSignal: socket.onSignal,
+    shouldCreateOffer: socket.shouldCreateOffer,
+    onOffer: socket.onOffer,
+    onAnswer: socket.onAnswer,
+    onIceCandidate: socket.onIceCandidate,
     onPartnerDisconnected: socket.onPartnerDisconnected,
   });
 
