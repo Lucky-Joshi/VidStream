@@ -1,9 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { MEDIA_CONSTRAINTS } from '../utils/constants';
 
-const SCREEN_SHARE_UNSUPPORTED_MESSAGE =
-  'Screen sharing is not supported on this browser/device. Use desktop Chrome or Edge for best support.';
-
 export function useMedia() {
   const [localStream, setLocalStream] = useState(null);
   const [screenStream, setScreenStream] = useState(null);
@@ -11,7 +8,6 @@ export function useMedia() {
   const [isCamEnabled, setIsCamEnabled] = useState(true);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
   const [isCameraViewMode, setIsCameraViewMode] = useState(false);
-  const [screenShareMessage, setScreenShareMessage] = useState('');
   const [permissionError, setPermissionError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isScreenShareSupported, setIsScreenShareSupported] = useState(true);
@@ -25,11 +21,9 @@ export function useMedia() {
     setIsScreenShareSupported(supported);
     if (supported) {
       console.log('[MEDIA] SCREEN SHARE SUPPORTED');
-      setScreenShareMessage('');
       setIsCameraViewMode(false);
     } else {
       console.log('[MEDIA] SCREEN SHARE NOT SUPPORTED');
-      setScreenShareMessage(SCREEN_SHARE_UNSUPPORTED_MESSAGE);
       setIsCameraViewMode(true);
     }
   }, []);
@@ -101,7 +95,6 @@ export function useMedia() {
     try {
       if (!navigator.mediaDevices?.getDisplayMedia) {
         console.log('[MEDIA] SCREEN SHARE NOT SUPPORTED');
-        setScreenShareMessage(SCREEN_SHARE_UNSUPPORTED_MESSAGE);
         return null;
       }
 
@@ -244,7 +237,6 @@ export function useMedia() {
     isCamEnabled,
     isSharingScreen,
     isCameraViewMode,
-    screenShareMessage,
     permissionError,
     isLoading,
     isScreenShareSupported,
