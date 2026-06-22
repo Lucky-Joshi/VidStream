@@ -3,27 +3,14 @@ import { io } from 'socket.io-client';
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 
 let socket = null;
-let connectionPromise = null;
 
 export function connectSocket() {
-  if (socket?.connected) {
-    console.log('[SOCKET] Already connected:', socket.id);
+  if (socket) {
+    console.log('[SOCKET] Reusing existing socket instance');
     return socket;
   }
 
-  if (connectionPromise) {
-    console.log('[SOCKET] Connection in progress, waiting...');
-    return connectionPromise;
-  }
-
-  if (socket) {
-    console.log('[SOCKET] Cleaning up old socket instance');
-    socket.removeAllListeners();
-    socket.disconnect();
-    socket = null;
-  }
-
-  console.log('[SOCKET] Creating new connection to', SOCKET_URL);
+  console.log('[SOCKET] Creating singleton socket connection to', SOCKET_URL);
 
   socket = io(SOCKET_URL, {
     transports: ['websocket', 'polling'],
@@ -34,18 +21,9 @@ export function connectSocket() {
     timeout: 10000,
   });
 
-  connectionPromise = new Promise((resolve) => {
-    socket.on('connect', () => {
-      console.log('[SOCKET] Connected:', socket.id);
-      connectionPromise = null;
-      resolve(socket);
-    });
+  socket.on('connect', () => {
+    console.log('[SOCKET] CONNECTED:', socket.id);
   });
-
-  socket.on('connect_error', (error) => {
-    console.error('[SOCKET] Connection error:', error);
-  });
-
   return socket;
 }
 
@@ -55,19 +33,37 @@ export function getSocket() {
 
 export function joinRoom() {
   if (socket?.connected) {
-    console.log('[SOCKET] Joining room...');
+    console.log('[SOCKET] JOIN-ROOM emitted');
     socket.emit('join-room');
   } else {
     console.warn('[SOCKET] Cannot join room - socket not connected');
   }
 }
 
-export function sendSignal(signal) {
+export function sendOffer(to, offer) {
   if (socket?.connected) {
-    console.log('[SIGNAL] SENDING -', signal.type);
-    socket.emit('signal', { signal });
+    console.log('[SIGNAL] OFFER SENT');
+    socket.emit('offer', { to, offer });
   } else {
-    console.warn('[SIGNAL] Cannot send - socket not connected');
+    console.warn('[SIGNAL] Cannot send offer - socket not connected');
+  }
+}
+
+export function sendAnswer(to, answer) {
+  if (socket?.connected) {
+    console.log('[SIGNAL] ANSWER SENT');
+    socket.emit('answer', { to, answer });
+  } else {
+    console.warn('[SIGNAL] Cannot send answer - socket not connected');
+  }
+}
+
+export function sendIceCandidate(to, candidate) {
+  if (socket?.connected) {
+    console.log('[SIGNAL] ICE SENT');
+    socket.emit('ice-candidate', { to, candidate });
+  } else {
+    console.warn('[SIGNAL] Cannot send ICE - socket not connected');
   }
 }
 
@@ -83,6 +79,5 @@ export function disconnectSocket() {
     socket.removeAllListeners();
     socket.disconnect();
     socket = null;
-    connectionPromise = null;
   }
 }
