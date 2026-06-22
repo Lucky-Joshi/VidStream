@@ -4,8 +4,10 @@ export function ControlBar({
   isSharingScreen,
   isPartnerConnected,
   isScreenShareSupported,
+  screenShareMessage,
   onToggleMic,
   onToggleCam,
+  onSwitchCamera,
   onStartScreenShare,
   onStopScreenShare,
   onLeaveCall,
@@ -43,6 +45,7 @@ export function ControlBar({
           id="btn-toggle-cam"
           className={`control-btn ${isCamEnabled ? 'active' : 'inactive'}`}
           onClick={onToggleCam}
+          onDoubleClick={onSwitchCamera}
           title={isCamEnabled ? 'Turn off camera' : 'Turn on camera'}
           aria-label={isCamEnabled ? 'Turn off camera' : 'Turn on camera'}
         >
@@ -65,8 +68,20 @@ export function ControlBar({
           className={`control-btn ${isSharingScreen ? 'active sharing' : ''}`}
           onClick={isSharingScreen ? onStopScreenShare : onStartScreenShare}
           disabled={!isScreenShareSupported}
-          title={!isScreenShareSupported ? 'Screen sharing not supported on this device' : (isSharingScreen ? 'Stop sharing' : 'Share screen')}
-          aria-label={!isScreenShareSupported ? 'Screen sharing not supported' : (isSharingScreen ? 'Stop sharing screen' : 'Share screen')}
+          title={
+            !isScreenShareSupported
+              ? screenShareMessage
+              : isSharingScreen
+                ? 'Stop sharing'
+                : 'Share screen'
+          }
+          aria-label={
+            !isScreenShareSupported
+              ? screenShareMessage
+              : isSharingScreen
+                ? 'Stop sharing screen'
+                : 'Share screen'
+          }
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
@@ -92,6 +107,9 @@ export function ControlBar({
         </svg>
         <span className="control-label">Leave</span>
       </button>
+      {!isScreenShareSupported && screenShareMessage && (
+        <p className="placeholder-hint">{screenShareMessage}</p>
+      )}
     </div>
   );
 }
