@@ -12,6 +12,7 @@ export function setupSocket(io) {
       const currentSize = room ? room.size : 0;
 
       if (currentSize >= MAX_ROOM_SIZE) {
+        console.log(`[handler] Room full — rejecting ${socket.id}`);
         socket.emit('room-full');
         return;
       }
@@ -25,6 +26,7 @@ export function setupSocket(io) {
 
       if (updatedSize >= MAX_ROOM_SIZE) {
         const peerIds = [...updatedRoom].filter((id) => id !== socket.id);
+        console.log(`[handler] Room full! Emitting partner-joined. peerIds:`, peerIds, `socket.id:`, socket.id);
         socket.emit('partner-joined', { peerId: peerIds[0] });
         socket.to(roomId).emit('partner-joined', { peerId: socket.id });
       } else {
@@ -34,6 +36,7 @@ export function setupSocket(io) {
 
     socket.on('signal', (data) => {
       const roomId = config.roomId;
+      console.log(`[handler] ${socket.id} forwarding signal(${data.signal?.type}) to room ${roomId}`);
       socket.to(roomId).emit('signal', {
         sender: socket.id,
         signal: data.signal,
