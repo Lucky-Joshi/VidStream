@@ -261,21 +261,26 @@ export function usePeer({
     };
   }, [destroyPeer]);
 
-  const replaceTrack = useCallback((newStream) => {
+  const replaceTrack = useCallback(async (newStream) => {
     const peer = peerRef.current;
     if (!peer || !newStream) {
-      return;
+      return false;
     }
 
-    const senders = peer.getSenders();
-    newStream.getTracks().forEach((newTrack) => {
-      const sender = senders.find((s) => s.track?.kind === newTrack.kind);
-      if (sender) {
-        sender.replaceTrack(newTrack).catch((error) => {
-          console.error('[PEER] replaceTrack failed:', error);
-        });
-      }
-    });
+    const screenOrCameraTrack = newStream.getVideoTracks()[0];
+    if (!screenOrCameraTrack) {
+      return false;
+    }
+
+    const sender = peer
+      .getSenders()
+      .find((currentSender) => currentSender.track && currentSender.track.kind === 'video');
+    if (!sender) {
+      return false;
+    }
+
+    await sender.replaceTrack(screenOrCameraTrack);
+    return true;
   }, []);
 
   return {
