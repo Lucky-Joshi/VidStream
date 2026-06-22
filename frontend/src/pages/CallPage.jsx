@@ -59,8 +59,10 @@ export function CallPage() {
         isSharingScreen={call.isSharingScreen}
         isPartnerConnected={call.partnerId !== null}
         isScreenShareSupported={call.isScreenShareSupported}
+        screenShareMessage={call.screenShareMessage}
         onToggleMic={call.toggleMic}
         onToggleCam={call.toggleCam}
+        onSwitchCamera={call.switchCamera}
         onStartScreenShare={call.startScreenShare}
         onStopScreenShare={call.stopScreenShare}
         onLeaveCall={call.leaveCall}
