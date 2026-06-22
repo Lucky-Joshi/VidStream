@@ -22,11 +22,13 @@ export function useCall() {
     if (!media.localStream || !socket.partnerId) return;
 
     if (prevMicRef.current !== media.isMicEnabled) {
+      console.log(`[useCall] Mic state change: ${media.isMicEnabled ? 'on' : 'off'}`);
       sendMediaState('microphone', media.isMicEnabled);
       prevMicRef.current = media.isMicEnabled;
     }
 
     if (prevCamRef.current !== media.isCamEnabled) {
+      console.log(`[useCall] Cam state change: ${media.isCamEnabled ? 'on' : 'off'}`);
       sendMediaState('camera', media.isCamEnabled);
       prevCamRef.current = media.isCamEnabled;
     }
@@ -36,6 +38,7 @@ export function useCall() {
     if (!peer.isPeerConnected) return;
 
     if (media.isSharingScreen && media.screenStream) {
+      console.log('[useCall] Replacing tracks with screen stream');
       peer.replaceTrack(media.screenStream);
     } else if (media.localStream) {
       peer.replaceTrack(media.localStream);
@@ -47,6 +50,10 @@ export function useCall() {
     peer.isPeerConnected,
     peer.replaceTrack,
   ]);
+
+  useEffect(() => {
+    console.log(`[useCall] State: partnerId=${socket.partnerId}, localStream=${media.localStream ? 'yes' : 'no'}, screenStream=${media.screenStream ? 'yes' : 'no'}, isPeerConnected=${peer.isPeerConnected}`);
+  });
 
   const leaveCall = () => {
     media.stopScreenShare();
