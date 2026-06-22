@@ -4,17 +4,19 @@ const MAX_ROOM_SIZE = 2;
 
 export function setupSocket(io) {
   io.on('connection', (socket) => {
-    console.log(`[BACKEND] User connected: ${socket.id}`);
+    console.log(`[BACKEND] SOCKET CONNECT: ${socket.id}`);
 
     socket.on('join-room', () => {
       const roomId = config.roomId;
       const room = io.sockets.adapter.rooms.get(roomId);
       const currentSize = room ? room.size : 0;
 
-      console.log(`[BACKEND] ${socket.id} attempting to join room - current size: ${currentSize}`);
+      console.log(
+        `[BACKEND] JOIN-ROOM: ${socket.id} attempting to join ${roomId} (size=${currentSize})`
+      );
 
       if (currentSize >= MAX_ROOM_SIZE) {
-        console.log(`[BACKEND] Room full — rejecting ${socket.id}`);
+        console.log(`[BACKEND] JOIN-ROOM: room full, rejecting ${socket.id}`);
         socket.emit('room-full');
         return;
       }
@@ -23,35 +25,56 @@ export function setupSocket(io) {
 
       const updatedRoom = io.sockets.adapter.rooms.get(roomId);
       const updatedSize = updatedRoom ? updatedRoom.size : 0;
+      const members = updatedRoom ? Array.from(updatedRoom) : [];
 
-      console.log(`[BACKEND] [${roomId}] ${socket.id} joined — room size: ${updatedSize}`);
+      console.log(
+        `[BACKEND] JOIN-ROOM: ${socket.id} joined ${roomId} (size=${updatedSize}, members=${members.join(', ')})`
+      );
 
       if (updatedSize === 1) {
-        // First user in room
-        console.log(`[BACKEND] First user in room, waiting for partner`);
+        console.log('[BACKEND] PARTNER-READY: waiting-for-partner');
         socket.emit('waiting-for-partner');
       } else if (updatedSize === 2) {
-        // Second user joined, notify both
-        const allSocketIds = Array.from(updatedRoom);
-        const peerId = allSocketIds.find((id) => id !== socket.id);
-        console.log(`[BACKEND] Room full! Both users paired - ${socket.id} <-> ${peerId}`);
-        
-        // Notify both users they have a partner
-        socket.emit('partner-joined', { peerId });
-        socket.to(roomId).emit('partner-joined', { peerId: socket.id });
+        const existingPeerId = members.find((id) => id !== socket.id);
+        if (!existingPeerId) {
+          return;
+        }
+
+        console.log(
+          `[BACKEND] USER-JOINED: existing=${existingPeerId}, new=${socket.id} in room=${roomId}`
+        );
+        io.to(existingPeerId).emit('user-joined', { peerId: socket.id });
+
+        // Emit "ready" only when exactly two users are in room.
+        console.log(
+          `[BACKEND] PARTNER-READY: ready emitted to ${existingPeerId} (offer=false) and ${socket.id} (offer=true)`
+        );
+        io.to(existingPeerId).emit('ready', { peerId: socket.id, shouldCreateOffer: false });
+        socket.emit('ready', { peerId: existingPeerId, shouldCreateOffer: true });
       } else {
-        console.log(`[BACKEND] Room size exceeded: ${updatedSize}`);
+        console.log(`[BACKEND] JOIN-ROOM: unexpected room size=${updatedSize}`);
       }
     });
 
-    socket.on('signal', (data) => {
-      const roomId = config.roomId;
-      const signalType = data.signal?.type || 'unknown';
-      console.log(`[BACKEND] ${socket.id} sending ${signalType} to room ${roomId}`);
-      socket.to(roomId).emit('signal', {
-        sender: socket.id,
-        signal: data.signal,
-      });
+    socket.on('offer', ({ to, offer }) => {
+      console.log(`[BACKEND] OFFER FORWARD: from=${socket.id} to=${to}`);
+      if (to) {
+        io.to(to).emit('offer', { from: socket.id, offer });
+      }
+    });
+
+    socket.on('answer', ({ to, answer }) => {
+      console.log(`[BACKEND] ANSWER FORWARD: from=${socket.id} to=${to}`);
+      if (to) {
+        io.to(to).emit('answer', { from: socket.id, answer });
+      }
+    });
+
+    socket.on('ice-candidate', ({ to, candidate }) => {
+      console.log(`[BACKEND] ICE FORWARD: from=${socket.id} to=${to}`);
+      if (to) {
+        io.to(to).emit('ice-candidate', { from: socket.id, candidate });
+      }
     });
 
     socket.on('media-state', (data) => {
@@ -68,8 +91,14 @@ export function setupSocket(io) {
       const roomId = config.roomId;
       const room = io.sockets.adapter.rooms.get(roomId);
       const remainingSize = room ? room.size : 0;
-      console.log(`[BACKEND] User disconnected: ${socket.id} - room size now: ${remainingSize}`);
-      socket.to(roomId).emit('partner-disconnected');
+      console.log(
+        `[BACKEND] DISCONNECT: ${socket.id} disconnected from ${roomId} (remaining=${remainingSize})`
+      );
+
+      socket.to(roomId).emit('partner-disconnected', { peerId: socket.id });
+      if (remainingSize === 1) {
+        socket.to(roomId).emit('waiting-for-partner');
+      }
     });
 
     socket.on('error', (err) => {
