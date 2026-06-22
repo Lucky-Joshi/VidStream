@@ -11,13 +11,19 @@ export function useSocket() {
   const onSignalRef = useRef(null);
   const onMediaStateRef = useRef(null);
   const onPartnerDisconnectedRef = useRef(null);
+  const handlerSetupRef = useRef(false);
 
   useEffect(() => {
+    if (handlerSetupRef.current) {
+      console.log('[SOCKET HOOK] Handlers already setup, skipping');
+      return;
+    }
+
     const socket = connectSocket();
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log(`[useSocket] Connected: ${socket.id}`);
+      console.log('[EVENT] SOCKET CONNECTED:', socket.id);
       setSocketId(socket.id);
       setConnectionState(CONNECTION_STATES.CONNECTING);
       setPartnerId(null);
@@ -26,31 +32,33 @@ export function useSocket() {
     });
 
     socket.on('waiting-for-partner', () => {
-      console.log('[useSocket] Waiting for partner');
+      console.log('[EVENT] WAITING FOR PARTNER');
       setConnectionState(CONNECTION_STATES.WAITING);
       setPartnerId(null);
     });
 
     socket.on('partner-joined', ({ peerId }) => {
-      console.log(`[useSocket] Partner joined: ${peerId}, myId: ${socket.id}`);
+      console.log('[EVENT] PARTNER JOINED:', peerId);
       setPartnerId(peerId);
       setConnectionState(CONNECTION_STATES.CONNECTED);
     });
 
     socket.on('signal', ({ sender, signal }) => {
-      console.log(`[useSocket] Signal received:${signal.type} from:${sender}`);
+      console.log('[EVENT] SIGNAL RECEIVED:', signal.type, 'from', sender);
       if (onSignalRef.current) {
         onSignalRef.current(signal, sender);
       }
     });
 
-    socket.on('media-state', ({ type, enabled }) => {
+    socket.on('media-state', ({ userId, type, enabled }) => {
+      console.log('[EVENT] MEDIA STATE:', type, enabled);
       if (onMediaStateRef.current) {
         onMediaStateRef.current(type, enabled);
       }
     });
 
     socket.on('partner-disconnected', () => {
+      console.log('[EVENT] PARTNER DISCONNECTED');
       setConnectionState(CONNECTION_STATES.WAITING);
       setPartnerId(null);
       if (onPartnerDisconnectedRef.current) {
@@ -59,27 +67,31 @@ export function useSocket() {
     });
 
     socket.on('room-full', () => {
+      console.log('[EVENT] ROOM FULL');
       setIsRoomFull(true);
     });
 
-    socket.on('disconnect', (reason) => {
-      console.log(`[useSocket] Disconnected: ${reason}`);
+    socket.on('disconnect', () => {
+      console.log('[EVENT] SOCKET DISCONNECTED');
       setConnectionState(CONNECTION_STATES.RECONNECTING);
     });
 
-    socket.on('reconnect', (attempt) => {
-      console.log(`[useSocket] Reconnected after ${attempt} attempts`);
+    socket.on('reconnect', () => {
+      console.log('[EVENT] SOCKET RECONNECTING');
       setConnectionState(CONNECTION_STATES.CONNECTING);
       joinRoom();
     });
 
-    socket.on('connect_error', (err) => {
-      console.error(`[useSocket] Connection error: ${err.message}`);
+    socket.on('connect_error', (error) => {
+      console.log('[EVENT] SOCKET CONNECTION ERROR:', error);
       setConnectionState(CONNECTION_STATES.RECONNECTING);
     });
 
+    handlerSetupRef.current = true;
+
     return () => {
-      disconnectSocket();
+      console.log('[SOCKET HOOK] Cleanup');
+      socket.removeAllListeners();
     };
   }, []);
 
