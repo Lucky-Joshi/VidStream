@@ -17,6 +17,7 @@ export function useSocket() {
     socketRef.current = socket;
 
     socket.on('connect', () => {
+      console.log(`[useSocket] Connected: ${socket.id}`);
       setSocketId(socket.id);
       setConnectionState(CONNECTION_STATES.CONNECTING);
       setPartnerId(null);
@@ -25,17 +26,19 @@ export function useSocket() {
     });
 
     socket.on('waiting-for-partner', () => {
+      console.log('[useSocket] Waiting for partner');
       setConnectionState(CONNECTION_STATES.WAITING);
       setPartnerId(null);
     });
 
     socket.on('partner-joined', ({ peerId }) => {
+      console.log(`[useSocket] Partner joined: ${peerId}, myId: ${socket.id}`);
       setPartnerId(peerId);
       setConnectionState(CONNECTION_STATES.CONNECTED);
     });
 
     socket.on('signal', ({ sender, signal }) => {
-      console.log('Signal received from partner:', signal.type);
+      console.log(`[useSocket] Signal received:${signal.type} from:${sender}`);
       if (onSignalRef.current) {
         onSignalRef.current(signal, sender);
       }
@@ -59,16 +62,19 @@ export function useSocket() {
       setIsRoomFull(true);
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (reason) => {
+      console.log(`[useSocket] Disconnected: ${reason}`);
       setConnectionState(CONNECTION_STATES.RECONNECTING);
     });
 
-    socket.on('reconnect', () => {
+    socket.on('reconnect', (attempt) => {
+      console.log(`[useSocket] Reconnected after ${attempt} attempts`);
       setConnectionState(CONNECTION_STATES.CONNECTING);
       joinRoom();
     });
 
-    socket.on('connect_error', () => {
+    socket.on('connect_error', (err) => {
+      console.error(`[useSocket] Connection error: ${err.message}`);
       setConnectionState(CONNECTION_STATES.RECONNECTING);
     });
 
