@@ -41,6 +41,7 @@ export function useCall() {
       console.log('[useCall] Replacing tracks with screen stream');
       peer.replaceTrack(media.screenStream);
     } else if (media.localStream) {
+      console.log('[useCall] Replacing tracks with camera stream');
       peer.replaceTrack(media.localStream);
     }
   }, [
@@ -50,10 +51,6 @@ export function useCall() {
     peer.isPeerConnected,
     peer.replaceTrack,
   ]);
-
-  useEffect(() => {
-    console.log(`[useCall] State: partnerId=${socket.partnerId}, localStream=${media.localStream ? 'yes' : 'no'}, screenStream=${media.screenStream ? 'yes' : 'no'}, isPeerConnected=${peer.isPeerConnected}`);
-  });
 
   const leaveCall = () => {
     media.stopScreenShare();
