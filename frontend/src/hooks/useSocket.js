@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { connectSocket, joinRoom } from '../services/socket';
+import { connectSocket, joinRoom, leaveRoom, disconnectSocket } from '../services/socket';
 import { CONNECTION_STATES } from '../utils/constants';
 
 export function useSocket() {
@@ -13,8 +13,9 @@ export function useSocket() {
   const onAnswerRef = useRef(null);
   const onIceCandidateRef = useRef(null);
   const onMediaStateRef = useRef(null);
-  const onPartnerDisconnectedRef = useRef(null);
+  const onUserLeftRef = useRef(null);
   const handlerSetupRef = useRef(false);
+  const manualLeaveRef = useRef(false);
 
   useEffect(() => {
     if (handlerSetupRef.current) {
@@ -84,13 +85,13 @@ export function useSocket() {
       }
     });
 
-    socket.on('partner-disconnected', () => {
-      console.log('[EVENT] PARTNER DISCONNECTED');
+    socket.on('user-left', () => {
+      console.log('[EVENT] USER LEFT RECEIVED');
       setConnectionState(CONNECTION_STATES.WAITING);
       setPartnerId(null);
       setShouldCreateOffer(false);
-      if (onPartnerDisconnectedRef.current) {
-        onPartnerDisconnectedRef.current();
+      if (onUserLeftRef.current) {
+        onUserLeftRef.current();
       }
     });
 
@@ -101,6 +102,13 @@ export function useSocket() {
 
     socket.on('disconnect', () => {
       console.log('[EVENT] SOCKET DISCONNECT');
+      if (manualLeaveRef.current) {
+        setConnectionState(CONNECTION_STATES.WAITING);
+        setPartnerId(null);
+        setShouldCreateOffer(false);
+        setSocketId(null);
+        return;
+      }
       setConnectionState(CONNECTION_STATES.RECONNECTING);
     });
 
@@ -139,8 +147,19 @@ export function useSocket() {
     onMediaStateRef.current = handler;
   }, []);
 
-  const onPartnerDisconnected = useCallback((handler) => {
-    onPartnerDisconnectedRef.current = handler;
+  const onUserLeft = useCallback((handler) => {
+    onUserLeftRef.current = handler;
+  }, []);
+
+  const leaveCallSocket = useCallback(() => {
+    manualLeaveRef.current = true;
+    leaveRoom();
+    disconnectSocket();
+    setConnectionState(CONNECTION_STATES.WAITING);
+    setPartnerId(null);
+    setShouldCreateOffer(false);
+    setSocketId(null);
+    setIsRoomFull(false);
   }, []);
 
   return {
@@ -154,6 +173,7 @@ export function useSocket() {
     onAnswer,
     onIceCandidate,
     onMediaState,
-    onPartnerDisconnected,
+    onUserLeft,
+    leaveCallSocket,
   };
 }
