@@ -4,7 +4,9 @@ import { useSocket } from './useSocket';
 import { usePeer } from './usePeer';
 import { sendMediaState } from '../services/socket';
 
-export function useCall() {
+const SCREEN_SHARE_UNSUPPORTED_MESSAGE = 'Screen sharing is not supported on this device.';
+
+export function useCall({ showToast } = {}) {
   const media = useMedia();
   const socket = useSocket();
   const peer = usePeer({
@@ -76,6 +78,13 @@ export function useCall() {
   };
 
   const startScreenShare = async () => {
+    if (!navigator.mediaDevices?.getDisplayMedia) {
+      if (typeof showToast === 'function') {
+        showToast(SCREEN_SHARE_UNSUPPORTED_MESSAGE);
+      }
+      return;
+    }
+
     const stream = await media.startScreenShare(async () => {
       await restoreCameraTrack();
     });
