@@ -40,6 +40,12 @@ export function joinRoom() {
   }
 }
 
+export function leaveRoom() {
+  if (socket?.connected) {
+    socket.emit('leave-room');
+  }
+}
+
 export function sendOffer(to, offer) {
   if (socket?.connected) {
     console.log('[SIGNAL] OFFER SENT');
@@ -75,7 +81,7 @@ export function sendMediaState(type, enabled) {
 
 export function disconnectSocket() {
   if (socket) {
-    console.log('[SOCKET] Disconnecting...');
+    console.log('[SOCKET] SOCKET DISCONNECTED');
     socket.removeAllListeners();
     socket.disconnect();
     socket = null;
