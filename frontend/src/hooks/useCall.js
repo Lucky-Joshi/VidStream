@@ -14,7 +14,7 @@ export function useCall() {
     onOffer: socket.onOffer,
     onAnswer: socket.onAnswer,
     onIceCandidate: socket.onIceCandidate,
-    onPartnerDisconnected: socket.onPartnerDisconnected,
+    onUserLeft: socket.onUserLeft,
   });
 
   const prevMicRef = useRef(media.isMicEnabled);
@@ -55,11 +55,11 @@ export function useCall() {
   ]);
 
   const leaveCall = () => {
-    media.stopScreenShare();
-    if (media.localStream) {
-      media.localStream.getTracks().forEach((track) => track.stop());
-    }
-    window.location.reload();
+    console.log('[CALL] LEAVE CLICKED');
+    media.stopAllMedia();
+    console.log('[CALL] LOCAL TRACKS STOPPED');
+    peer.destroyPeer();
+    socket.leaveCallSocket();
   };
 
   return {
