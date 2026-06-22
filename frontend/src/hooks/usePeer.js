@@ -34,33 +34,35 @@ export function usePeer({ partnerId, socketId, localStream, onSignal, onPartnerD
       });
 
       peer.on('signal', (data) => {
-        console.log('Peer signal event:', data.type);
+        console.log(`[usePeer] Signaling:${data.type} iceState:${peer._pc?.iceConnectionState}`);
         sendSignal(data);
       });
 
       peer.on('connect', () => {
-        console.log('Peer connected');
+        console.log('[usePeer] Connected!');
         setIsPeerConnected(true);
       });
 
       peer.on('stream', (incomingStream) => {
-        console.log('Remote stream received:', incomingStream.getTracks());
+        console.log(`[usePeer] Remote stream received: ${incomingStream.getTracks().length} tracks`, incomingStream.getTracks().map(t => `${t.kind}:${t.id}`));
         setRemoteStream(incomingStream);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = incomingStream;
-          console.log('Assigned stream to video element');
+          console.log('[usePeer] Assigned stream to remoteVideoRef');
+        } else {
+          console.warn('[usePeer] remoteVideoRef not available yet');
         }
       });
 
       peer.on('close', () => {
-        console.log('Peer closed');
+        console.log('[usePeer] Peer closed');
         setIsPeerConnected(false);
         setRemoteStream(null);
         peerRef.current = null;
       });
 
       peer.on('error', (err) => {
-        console.warn('Peer error:', err.message);
+        console.warn('[usePeer] Error:', err.message);
         destroyPeer();
       });
 
@@ -71,16 +73,19 @@ export function usePeer({ partnerId, socketId, localStream, onSignal, onPartnerD
   );
 
   useEffect(() => {
-    if (!partnerId || !socketId) {
-      destroyPeer();
+    if (!partnerId || !socketId || !localStream) {
+      if (!partnerId || !socketId) {
+        destroyPeer();
+      }
       return;
     }
 
-    console.log(`Creating peer connection - partnerId: ${partnerId}, socketId: ${socketId}, localStream: ${localStream ? 'yes' : 'no'}`);
+    console.log(`[usePeer] Creating peer - initiator:${socketId > partnerId}, partnerId:${partnerId}, localStream:${localStream.getTracks().length}tracks`);
     const isInitiator = socketId > partnerId;
     createPeer(isInitiator, localStream);
 
     return () => {
+      console.log('[usePeer] Cleaning up peer');
       destroyPeer();
     };
   }, [partnerId, socketId, localStream]);
